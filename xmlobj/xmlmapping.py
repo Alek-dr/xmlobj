@@ -112,19 +112,23 @@ def object_from_data(
                     attr_val = getattr(base_obj, ks)
                     setattr(base_obj, ks, attr_type(attr_val))
         elif attr_type is dict:
-            cls_ = type(ks, (), {})
-            ext_cls = mixin_factory(ks, cls_, [XMLMixin])
+            cls_name = ks.capitalize()
+            attr_name = ks.lower()
+            cls_ = type(cls_name, (), {})
+            ext_cls = mixin_factory(cls_name, cls_, [XMLMixin])
             sub_cls_instance = ext_cls()
             attr = object_from_data(sub_cls_instance, vs, attr_type_spec)
-            setattr(base_obj, ks, attr)
+            setattr(base_obj, attr_name, attr)
         elif attr_type is list:
-            setattr(base_obj, ks, list())
-            cls_ = type(ks, (), {})
-            ext_cls = mixin_factory(ks, cls_, [XMLMixin])
+            attr_name = ks.lower()
+            setattr(base_obj, attr_name, list())
+            cls_name = ks.capitalize()
+            cls_ = type(cls_name, (), {})
+            ext_cls = mixin_factory(cls_name, cls_, [XMLMixin])
             sub_cls_instance = ext_cls()
             for list_obj in vs:
                 sub_obj = object_from_data(sub_cls_instance, list_obj, attr_type_spec)
-                getattr(base_obj, ks).append(sub_obj)
+                getattr(base_obj, attr_name).append(sub_obj)
         else:
             raise Exception(f"Cannot parse key-value: {str(ks)} - {str(vs)}")
     return base_obj
@@ -156,6 +160,7 @@ def get_xml_obj(
     root_key = list(data.keys())[0]
     root_val = data.get(root_key)
     assert isinstance(root_val, dict)
+    root_key = root_key.capitalize()
     cls_ = type(root_key, (), {})
     if mixin_cls is None:
         ext_cls = mixin_factory(root_key, cls_, [XMLMixin])
