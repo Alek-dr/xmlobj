@@ -31,3 +31,8 @@ if __name__ == "__main__":
     rendered_img.show()
 
 ```
+
+### Installation
+```
+pip install xmlobj
+```
