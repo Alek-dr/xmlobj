@@ -9,7 +9,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from xmlobj.xmlmapping import get_xml_obj
+from xmlobj import get_xml_obj
 
 
 class DrawBoxesMixin:
