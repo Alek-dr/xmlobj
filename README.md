@@ -32,6 +32,53 @@ if __name__ == "__main__":
 
 ```
 
+### Limitations
+
+* Tag lowercase  
+Original:
+```
+  <CD>
+    <TITLE>Empire Burlesque</TITLE>
+    <ARTIST>Bob Dylan</ARTIST>
+    <COUNTRY>USA</COUNTRY>
+  </CD>
+```
+Output:
+```
+<cd>
+    <TITLE>Empire Burlesque</TITLE>
+    <ARTIST>Bob Dylan</ARTIST>
+    <COUNTRY>USA</COUNTRY>
+</cd>
+```
+* Symbol '@' in tags becomes separate attribute 
+Original:
+```
+ <book id="bk101">
+        <author>Gambardella, Matthew</author>
+        <title>XML Developer's Guide</title>
+        <genre>Computer</genre>
+        <price>44.95</price>
+        <publish_date>2000-10-01</publish_date>
+        <description>An in-depth look at creating applications
+            with XML.
+        </description>
+    </book>
+```
+Output:
+```
+<book>
+    <id>bk101</id>
+    <author>Gambardella, Matthew</author>
+    <title>XML Developer's Guide</title>
+    <genre>Computer</genre>
+    <price>44.95</price>
+    <publish_date>2000-10-01</publish_date>
+    <description>An in-depth look at creating applications
+        with XML.</description>
+</book>
+```
+
 ### Installation
 ```
 pip install xmlobj

@@ -1,4 +1,5 @@
 import re
+import xml.etree.ElementTree as xml
 from pathlib import Path
 from typing import Optional, Union
 
@@ -37,29 +38,47 @@ class XMLMixin:
     Class to add xml-style print
     """
 
-    def simple_attr(self):
+    def _simple_attr(self):
         for attribute, value in self.__dict__.items():
             if type(value) in [int, float, bool, str]:
                 yield attribute
 
-    def obj_type_attr(self):
+    def _obj_type_attr(self):
         for attribute, value in self.__dict__.items():
             if isinstance(value, XMLMixin):
                 yield attribute
 
-    def list_type_attr(self):
+    def _list_type_attr(self):
         for attribute, value in self.__dict__.items():
             if type(value) is list:
                 yield attribute
 
+    def to_xml(self):
+        root_name = self.__class__.__name__.lower()
+        root = xml.Element(root_name)
+        for k, v in self.__dict__.items():
+            if isinstance(v, XMLMixin):
+                elem = v.to_xml()
+                root.append(elem)
+            elif isinstance(v, list):
+                for item in v:
+                    xml_item = item.to_xml()
+                    root.append(xml_item)
+            else:
+                elem = xml.Element(k)
+                elem.text = str(v)
+                root.append(elem)
+        return root
+
     def __str__(self):
         head = []
         root_name = self.__class__.__name__
-        for attr_name in self.simple_attr():
+        for attr_name in self._simple_attr():
             attr_val = getattr(self, attr_name)
+            attr_name = attr_name.lower()
             head.append(f"\n\t<{attr_name}>{attr_val}</{attr_name}>")
         attr_list = []
-        for attr_name in self.list_type_attr():
+        for attr_name in self._list_type_attr():
             attr_val = getattr(self, attr_name)
             objects_ = []
             for obj in attr_val:
@@ -69,7 +88,7 @@ class XMLMixin:
                 objects_.append(sobj + "\n")
                 s_objects = "".join(objects_)
                 attr_list.append(s_objects)
-        for attr_name in self.obj_type_attr():
+        for attr_name in self._obj_type_attr():
             attr_val = getattr(self, attr_name)
             parts = str(attr_val).split("\n")
             sobj = "\n".join([f"\t{line}" for line in parts])
@@ -82,13 +101,14 @@ class XMLMixin:
                     attr_list[i] = "\n" + attr_list[i]
             head.append("".join(attr_list))
         header = "".join(head)
+        root_name = root_name.lower()
         s = f"<{root_name}>{header}\n</{root_name}>"
         return s
 
 
 def object_from_data(
-    base_obj: object, attributes: dict, attr_type_spec: Optional[dict]
-) -> object:
+    base_obj: XMLMixin, attributes: dict, attr_type_spec: Optional[dict]
+) -> XMLMixin:
     """
     Add attributes to base_obj
 
@@ -105,6 +125,8 @@ def object_from_data(
     for ks, vs in attributes.items():
         attr_type = get_attr_type(vs)
         if attr_type in [str, int, float, bool]:
+            if ks.startswith("@"):
+                ks = ks.replace("@", "")
             setattr(base_obj, ks, attr_type(vs))
             if attr_type_spec is not None:
                 if ks in attr_type_spec:
@@ -121,14 +143,15 @@ def object_from_data(
             setattr(base_obj, attr_name, attr)
         elif attr_type is list:
             attr_name = ks.lower()
-            setattr(base_obj, attr_name, list())
             cls_name = ks.capitalize()
             cls_ = type(cls_name, (), {})
             ext_cls = mixin_factory(cls_name, cls_, [XMLMixin])
-            sub_cls_instance = ext_cls()
+            objects_ = []
             for list_obj in vs:
+                sub_cls_instance = ext_cls()
                 sub_obj = object_from_data(sub_cls_instance, list_obj, attr_type_spec)
-                getattr(base_obj, attr_name).append(sub_obj)
+                objects_.append(sub_obj)
+            setattr(base_obj, attr_name, objects_)
         else:
             raise Exception(f"Cannot parse key-value: {str(ks)} - {str(vs)}")
     return base_obj
@@ -138,7 +161,7 @@ def get_xml_obj(
     file: Union[str, Path],
     attr_type_spec: Optional[dict] = None,
     mixin_cls: Optional = None,
-) -> object:
+) -> XMLMixin:
     """
     Map xml file to python object
 

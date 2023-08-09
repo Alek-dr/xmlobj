@@ -1,3 +1,4 @@
+import xml.etree.ElementTree as xml
 from pathlib import Path
 
 from PIL import Image, ImageDraw
@@ -23,7 +24,6 @@ def sample_1():
     for file in samples.glob("*.xml"):
         obj = get_xml_obj(file)
         print(obj)
-        print("---------------------------------")
 
 
 def sample_2():
@@ -44,7 +44,7 @@ def sample_3():
     """
     Add functionality with mixin class
     """
-    pascal_annotation = Path("samples/000027.xml") # sample from VOCtest_06-Nov-2007
+    pascal_annotation = Path("samples/000027.xml")  # sample from VOCtest_06-Nov-2007
     img_file = "samples/000027.jpg"
     img = Image.open(img_file)
     obj = get_xml_obj(pascal_annotation, mixin_cls=DrawBoxesMixin)
@@ -52,5 +52,20 @@ def sample_3():
     rendered_img.show()
 
 
+def sample_4():
+    """
+    Save xml file
+    """
+    samples = Path("./samples")
+    for file in samples.glob("*.xml"):
+        obj = get_xml_obj(file)
+        xml_ = obj.to_xml()
+        tree = xml.ElementTree(xml_)
+        out_file = f"./xml_outputs/{file.name}"
+        xml.indent(tree, space="\t", level=0)
+        with open(out_file, "w") as out:
+            tree.write(out, encoding="unicode", method="xml")
+
+
 if __name__ == "__main__":
-    sample_3()
+    sample_4()
