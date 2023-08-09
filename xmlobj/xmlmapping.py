@@ -1,19 +1,18 @@
-from pathlib import Path
 import re
-from typing import Any, Union, Optional
+from pathlib import Path
+from typing import Optional, Union
 
 from xmltodict import parse
-
-ds_path = Path("/media/alexander/D/datasets/Public/VOCtest_06-Nov-2007/VOCdevkit/VOC2007")
-img_src = ds_path / "JPEGImages"
-ann_src = ds_path / "Annotations"
 
 
 def mixin_factory(name, base, mixin):
     """
     https://stackoverflow.com/questions/9087072/how-do-i-create-a-mixin-factory-in-python
     """
-    return type(name, (base, mixin), {})
+    return type(name, (base, *mixin), {})
+
+
+_BOOL_STR = ("True", "true", "false", "False")
 
 
 def get_attr_type(attr_value) -> type:
@@ -28,12 +27,15 @@ def get_attr_type(attr_value) -> type:
             return float
         if all(char.isnumeric() for char in attr_value):
             return int
-        if attr_value == "true" or attr_value == "True":
+        if attr_value in _BOOL_STR:
             return bool
     return str
 
 
 class XMLMixin:
+    """
+    Class to add xml-style print
+    """
 
     def simple_attr(self):
         for attribute, value in self.__dict__.items():
@@ -84,37 +86,80 @@ class XMLMixin:
         return s
 
 
-def object_from_data(key: str, value: Any, attr_type_spec: Optional[dict]) -> type:
-    tmp_cls = type(key, (), {})
-    attr_cls = mixin_factory(key, tmp_cls, XMLMixin)
-    obj = attr_cls()
-    for ks, vs in value.items():
+def object_from_data(
+    base_obj: object, attributes: dict, attr_type_spec: Optional[dict]
+) -> object:
+    """
+    Add attributes to base_obj
+
+    Parameters
+    ----------
+    base_obj: base obj to add attributes
+    attributes: dict of attr and values
+    attr_type_spec: specify attribute types to explicitly cast attribute values
+
+    Returns
+    -------
+        object with attributes from attributes
+    """
+    for ks, vs in attributes.items():
         attr_type = get_attr_type(vs)
         if attr_type in [str, int, float, bool]:
-            setattr(obj, ks, attr_type(vs))
+            setattr(base_obj, ks, attr_type(vs))
             if attr_type_spec is not None:
                 if ks in attr_type_spec:
                     attr_type = attr_type_spec.get(ks)
-                    attr_val = getattr(obj, ks)
-                    setattr(obj, ks, attr_type(attr_val))
+                    attr_val = getattr(base_obj, ks)
+                    setattr(base_obj, ks, attr_type(attr_val))
         elif attr_type is dict:
-            attr = object_from_data(ks, vs, attr_type_spec)
-            setattr(obj, ks, attr)
+            cls_ = type(ks, (), {})
+            ext_cls = mixin_factory(ks, cls_, [XMLMixin])
+            sub_cls_instance = ext_cls()
+            attr = object_from_data(sub_cls_instance, vs, attr_type_spec)
+            setattr(base_obj, ks, attr)
         elif attr_type is list:
-            setattr(obj, ks, list())
+            setattr(base_obj, ks, list())
+            cls_ = type(ks, (), {})
+            ext_cls = mixin_factory(ks, cls_, [XMLMixin])
+            sub_cls_instance = ext_cls()
             for list_obj in vs:
-                sub_obj = object_from_data(ks, list_obj, attr_type_spec)
-                getattr(obj, ks).append(sub_obj)
+                sub_obj = object_from_data(sub_cls_instance, list_obj, attr_type_spec)
+                getattr(base_obj, ks).append(sub_obj)
         else:
-            raise Exception(f"Cannot parse key-value: {str(key)} - {str(value)}")
-    return obj
+            raise Exception(f"Cannot parse key-value: {str(ks)} - {str(vs)}")
+    return base_obj
 
 
-def get_xml_obj(file: Union[str, Path], attr_type_spec: Optional[dict] = None, mixin_cls: Optional = None) -> type:
+def get_xml_obj(
+    file: Union[str, Path],
+    attr_type_spec: Optional[dict] = None,
+    mixin_cls: Optional = None,
+) -> object:
+    """
+    Map xml file to python object
+
+    Parameters
+    ----------
+    file: path to xml file
+    attr_type_spec: dict, optional
+        specify attribute types to explicitly cast attribute values
+    mixin_cls: cls
+        class to provide additional functionality
+    Returns
+    -------
+        instance of mapped xml object
+    """
     with open(file, "r") as f:
         xml = f.read()
     data = parse(xml)
     assert len(data) == 1
     root_key = list(data.keys())[0]
     root_val = data.get(root_key)
-    return object_from_data(root_key, root_val, attr_type_spec)
+    assert isinstance(root_val, dict)
+    cls_ = type(root_key, (), {})
+    if mixin_cls is None:
+        ext_cls = mixin_factory(root_key, cls_, [XMLMixin])
+    else:
+        ext_cls = mixin_factory(root_key, cls_, [XMLMixin, mixin_cls])
+    base_cls_instance = ext_cls()
+    return object_from_data(base_cls_instance, root_val, attr_type_spec)
