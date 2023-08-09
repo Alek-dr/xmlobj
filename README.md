@@ -51,7 +51,7 @@ Output:
     <COUNTRY>USA</COUNTRY>
 </cd>
 ```
-* Symbol '@' in tags becomes separate attribute 
+* Symbol '@' in tags becomes separate attribute   
 Original:
 ```
  <book id="bk101">
