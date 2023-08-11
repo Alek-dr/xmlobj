@@ -35,7 +35,7 @@ def get_attr_type(attr_value) -> type:
 
 class XMLMixin:
     """
-    Class to add xml-style print
+    Class provides to_xml function and xml-style str output
     """
 
     def _simple_attr(self):
