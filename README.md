@@ -35,6 +35,7 @@ if __name__ == "__main__":
 ### Limitations
 
 * Tag lowercase  
+
 Original:
 ```
   <CD>
@@ -51,7 +52,8 @@ Output:
     <COUNTRY>USA</COUNTRY>
 </cd>
 ```
-* Attribute properties   
+* Attribute properties
+
 Original:
 ```
  <book id="bk101">
