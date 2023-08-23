@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="xmlobj",
-    version="1.1.0",
+    version="1.2.0",
     author="Alexander Barmin",
     author_email="barmin1@mail.ru",
     description="xmlobj is simple utility to map xml file to python object",

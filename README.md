@@ -26,7 +26,7 @@ if __name__ == "__main__":
     pascal_annotation = Path("samples/000027.xml")
     img_file = "samples/000027.jpg"
     img = Image.open(img_file)
-    obj = get_xml_obj(pascal_annotation, mixin_cls=DrawBoxesMixin)
+    obj = get_xml_obj(pascal_annotation, mixin_clsasses=[DrawBoxesMixin])
     rendered_img = obj.draw_box(img.copy())
     rendered_img.show()
 

@@ -1,7 +1,7 @@
 import re
 import xml.etree.ElementTree as xml
 from pathlib import Path
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from xmltodict import parse
 
@@ -160,7 +160,7 @@ def object_from_data(
 def get_xml_obj(
     file: Union[str, Path],
     attr_type_spec: Optional[dict] = None,
-    mixin_cls: Optional = None,
+    mixin_clsasses: Optional[List[type]] = None,
 ) -> XMLMixin:
     """
     Map xml file to python object
@@ -170,8 +170,8 @@ def get_xml_obj(
     file: path to xml file
     attr_type_spec: dict, optional
         specify attribute types to explicitly cast attribute values
-    mixin_cls: cls
-        class to provide additional functionality
+    mixin_clsasses: list of types
+        classes to provide additional functionality
     Returns
     -------
         instance of mapped xml object
@@ -185,9 +185,9 @@ def get_xml_obj(
     assert isinstance(root_val, dict)
     root_key = root_key.capitalize()
     cls_ = type(root_key, (), {})
-    if mixin_cls is None:
+    if mixin_clsasses is None:
         ext_cls = mixin_factory(root_key, cls_, [XMLMixin])
     else:
-        ext_cls = mixin_factory(root_key, cls_, [XMLMixin, mixin_cls])
+        ext_cls = mixin_factory(root_key, cls_, [XMLMixin, *mixin_clsasses])
     base_cls_instance = ext_cls()
     return object_from_data(base_cls_instance, root_val, attr_type_spec)

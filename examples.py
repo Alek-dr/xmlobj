@@ -47,7 +47,7 @@ def sample_3():
     pascal_annotation = Path("samples/000027.xml")  # sample from VOCtest_06-Nov-2007
     img_file = "samples/000027.jpg"
     img = Image.open(img_file)
-    obj = get_xml_obj(pascal_annotation, mixin_cls=DrawBoxesMixin)
+    obj = get_xml_obj(pascal_annotation, mixin_clsasses=[DrawBoxesMixin])
     rendered_img = obj.draw_box(img.copy())
     rendered_img.show()
 

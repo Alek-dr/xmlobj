@@ -1,1 +1,1 @@
-from .xmlmapping import get_xml_obj
+from .xmlmapping import XMLMixin, get_xml_obj
