@@ -1,6 +1,6 @@
 [project]
 name = "xmlobj"
-version = "1.2.0"
+version = "1.2.1"
 authors = [
   { name="Alexander Barmin", email="barmin1@mail.ru" },
 ]

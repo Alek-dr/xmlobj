@@ -127,6 +127,8 @@ def object_from_data(
         if attr_type in [str, int, float, bool]:
             if ks.startswith("@"):
                 ks = ks.replace("@", "")
+            if vs in _BOOL_STR:
+                vs = eval(vs)
             setattr(base_obj, ks, attr_type(vs))
             if attr_type_spec is not None:
                 if ks in attr_type_spec:
