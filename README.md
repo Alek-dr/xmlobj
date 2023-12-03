@@ -32,6 +32,21 @@ if __name__ == "__main__":
 
 ```
 
+
+### Save xml
+```
+import xml.etree.cElementTree as ET
+
+from xmlobj import get_xml_obj
+
+if __name__ == "__main__":
+    obj = get_xml_obj("samples/books.xml")
+    root = obj.to_xml()
+    tree = ET.ElementTree(root)
+    ET.indent(tree, space="\t", level=0)
+    tree.write("my_xml_books.xml")
+```
+
 ### Limitations
 
 * Tag lowercase  
