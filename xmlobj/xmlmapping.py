@@ -146,7 +146,6 @@ class XMLMixin:
                         objects.append(c)
                 obj_str = "\n".join(objects)
                 if level > 0:
-                    obj_str = "\n".join(objects)
                     obj_str = complex_attr_to_str(attr_name, obj_str)
                 obj_str = obj_str.strip()
                 elements.append(obj_str)
